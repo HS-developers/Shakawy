@@ -71,9 +71,19 @@
       border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       text-align: right;
+      position: relative;
     }
     .complaint-card p {
       margin: 5px 0;
+    }
+    .status-date {
+      color: #007bff;
+      font-size: 15px;
+      margin-top: 7px;
+      margin-bottom: 0;
+      direction: rtl;
+      text-align: right;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -99,7 +109,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
   <script>
-    // بيانات الاتصال بفirebase
+    // بيانات الاتصال بفfirebase
     const firebaseConfig = {
       apiKey: "AIzaSyCqLIInr3ygfUcQVauAjtZsB-WIWBnBNBg",
       authDomain: "shakawy-e906e.firebaseapp.com",
@@ -116,6 +126,18 @@
 
     const trackForm = document.getElementById('trackForm');
     const resultDiv = document.getElementById('result');
+
+    function formatDate(date) {
+      if (!date) return '';
+      // صيغة عربية واضحة
+      return date.toLocaleString('ar-EG', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
 
     trackForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -142,6 +164,10 @@
           if (matches.length > 0) {
             resultDiv.innerHTML = `<h3>نتائج البحث (${matches.length}) :</h3>`;
             matches.forEach(data => {
+              let statusDateHtml = '';
+              if (data.statusUpdatedAt && typeof data.statusUpdatedAt.toDate === "function") {
+                statusDateHtml = `<p class="status-date"><strong>تاريخ آخر تحديث للحالة:</strong> ${formatDate(data.statusUpdatedAt.toDate())}</p>`;
+              }
               resultDiv.innerHTML += `
                 <div class="complaint-card">
                   <p><strong>الاسم:</strong> ${data.ownerName || data.name || 'غير متوفر'}</p>
@@ -150,6 +176,7 @@
                   <p><strong>عنوان الشكوى:</strong> ${data.title || 'غير متوفر'}</p>
                   <p><strong>تفاصيل الشكوى:</strong> ${data.description || 'غير متوفر'}</p>
                   <p><strong>الحالة:</strong> ${data.status || 'قيد المعالجة'}</p>
+                  ${statusDateHtml}
                 </div>
               `;
             });
